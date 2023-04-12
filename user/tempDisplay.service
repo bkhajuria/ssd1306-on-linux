@@ -1,0 +1,12 @@
+[Unit]
+Description=Service to display system temperature on ssd1306 display device
+
+[Service]
+ExecStart=/home/orangepi/lkm/i2c_temp_display_ssd1306/user/tempDisplay.sh
+Restart=always
+User=root
+Group=root
+Type=Simple
+
+[Install]
+WantedBy=multi-user.target
