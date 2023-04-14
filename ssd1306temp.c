@@ -117,6 +117,7 @@ static int ssd1306tempClose(struct inode * deviceFile,struct file *instance){
         return 0;
 }
 
+/*File operations for the character device.*/
 static struct file_operations ssd1306temp_fOps={
         .owner=THIS_MODULE,
         .open=ssd1306tempOpen,
@@ -175,25 +176,25 @@ static int __init ssd1306temp_init(void){
     printk(KERN_INFO"Creating device file for SSD1306...");
     if(alloc_chrdev_region(&ssd1306_dev_nr,0,1,DRIVER_NAME)<0){
         printk(KERN_ERR"Could not allocate Device number..");
-        goto allocErr;
+        goto allocError;
     }
 
     printk(KERN_INFO"Success! : Device numer Major: %d Minor %d",ssd1306_dev_nr>>20,ssd1306_dev_nr&0xfffff);
     if((ssd1306temp=class_create(THIS_MODULE,DRIVER_CLASS))==NULL){
         printk(KERN_ERR"Couldnot create class for device!\n");
-        goto classErr;
+        goto classError;
     }
 
     if(device_create(ssd1306temp,NULL,ssd1306_dev_nr,NULL,DRIVER_NAME)==NULL){
         printk("Cannot create device file!");
-        goto fileErr;
+        goto fileError;
     }
 
     cdev_init(&ssd1306temp_cdev,&ssd1306temp_fOps);
 
     if(cdev_add(&ssd1306temp_cdev,ssd1306_dev_nr,1)<0){
         printk("Device registration failed!");
-        goto addErr;
+        goto addError;
     }
 
     printk(KERN_INFO"Initializing SSD1306 Temerature Display Module...");
@@ -232,24 +233,27 @@ cleanUp:
         i2c_put_adapter(ssd1306_i2c_adapter);
     return ret;
 
-addErr:
+addError:
     device_destroy(ssd1306temp,ssd1306_dev_nr);
-fileErr:
+fileError:
     class_destroy(ssd1306temp);
-classErr:
+classError:
     unregister_chrdev(ssd1306_dev_nr,DRIVER_NAME);
-allocErr:
+allocError:
     return -1;
 
 }
+
+/*Module Exit*/
 static void __exit ssd1306temp_exit(void){
     printk(KERN_ALERT"Removing SSD1306 Temerature Display Module...");
+    /*Clear resources*/
     i2c_unregister_device(ssd1306_i2c_client);
     i2c_del_driver(&ssd1306_i2c_driver);
     cdev_del(&ssd1306temp_cdev);
     device_destroy(ssd1306temp,ssd1306_dev_nr);
     class_destroy(ssd1306temp);
-    unregister_chrdev(ssd1306_dev_nr,DRIVER_NAME);
+    unregister_chrdev_region(ssd1306_dev_nr,1);
 }
 
 module_init(ssd1306temp_init);

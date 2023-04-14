@@ -1,5 +1,5 @@
 /*
-* This light-weight library provides functionality to render numeric digits and sysmbols 
+* This light-weight library provides functionality to render numeric digits and symbols 
 * on the SSD1306 128x64 OLED Display module.
 * It makes use of the "mapGen" utility (part of this repository) to create 16x16 bitmaps 
 * for digits and symbols.
