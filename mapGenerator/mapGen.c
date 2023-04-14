@@ -317,7 +317,7 @@ int main(){
 
     printf("\n\nSymbols:\n\n");
     
-    for(int symbol=0;symbol<4;symbol++){
+    for(int symbol=0;symbol<NUM_SYMBOLS;symbol++){
         printf("{");
         for(int i=0;i<16*16;i+=128){
             for(int j=i;j<i+16;j++){
