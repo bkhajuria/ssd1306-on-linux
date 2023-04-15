@@ -35,6 +35,7 @@ static struct cdev ssd1306temp_cdev;
 static unsigned char buffer[32];
 
 static symbol scale = DEGREE_CELSIUS;   //Default unit for temperature.
+static bool test=false;
 
 /*Display Temperature Value on SSD1306*/
 /*Temperature value parsing is specific to Orange Pi 4 LTS Device.If on any other device, check the documentation and make changes accordingly.*/
@@ -42,11 +43,11 @@ void parseAndDisplayTemp(unsigned char *buf,const unsigned int size){
     int x=3,y=80;
     renderSymbol(NULLSYM,x,96); //Bugfix: clear unit symbol if it is shifted to right.
     if(buf[0]=='c' || buf[0]=='C'){
-        scale=DEGREE_CELSIUS;
+        scale=DEGREE_CELSIUS;               //Set unit to Degree Celsius on input 'C'
         renderSymbol(scale,x,y);
         return;
     }
-    else if(buf[0]=='f' || buf[0]=='F'){
+    else if(buf[0]=='f' || buf[0]=='F'){    //Set unit to Degree Fahrenheit on input 'F'
         scale=DEGREE_FAHRENHEIT;
         renderSymbol(scale,x,y);
         return;
@@ -102,6 +103,22 @@ static ssize_t ssd1306tempWrite(struct file * file,const char * user_buffer, siz
         discard=copy_from_user(buffer,user_buffer,size);
         delta=size-discard;
         //printk(KERN_ALERT"Temperature Value: %s",buffer);
+        if(buffer[0]=='R' || buffer[0]=='r'){       //Render test.
+            test=true;
+            clearDisplay();
+            renderTest();
+            return delta;
+        }
+        else if(buffer[0]=='X' || buffer[0]=='x'){
+            test=false;
+            clearDisplay();
+            return delta;
+
+        }
+        if(test){
+            test=false;
+            clearDisplay();
+        }
         parseAndDisplayTemp(buffer,size);
         return delta;
 }
@@ -148,6 +165,7 @@ struct i2c_device_id ssd1306_i2c_device_id[]={
 static int ssd1306_i2c_probe(struct i2c_client * client, const struct i2c_device_id *device_id){
     initDisplay(); //Ititialize SSD1306 
     //renderTest(); //Display all digits and symbols
+    //renderSymbol(KELVIN,1,56); //Test the newly added character 'K'
     return 0;
 }
 
@@ -172,6 +190,8 @@ struct i2c_driver ssd1306_i2c_driver={
 
 static int __init ssd1306temp_init(void){
     int ret=0,addRet;
+    printk(KERN_INFO"Initializing SSD1306 Temerature Display Module...");
+
 
     printk(KERN_INFO"Creating device file for SSD1306...");
     if(alloc_chrdev_region(&ssd1306_dev_nr,0,1,DRIVER_NAME)<0){
@@ -197,7 +217,6 @@ static int __init ssd1306temp_init(void){
         goto addError;
     }
 
-    printk(KERN_INFO"Initializing SSD1306 Temerature Display Module...");
     ssd1306_i2c_adapter = i2c_get_adapter(I2C_BUS);
     if(ssd1306_i2c_adapter!=NULL){
         ssd1306_i2c_client=i2c_new_client_device(ssd1306_i2c_adapter, &ssd1306_board_info);

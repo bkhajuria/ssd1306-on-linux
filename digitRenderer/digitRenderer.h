@@ -16,7 +16,8 @@ typedef enum{
     DEGREE_CELSIUS,
     DEGREE_FAHRENHEIT,
     MINUS,
-    NULLSYM
+    NULLSYM,
+    KELVIN      //Enumeration for the newly added character 'K'
 } symbol; 
 
 /*16x16 pixels font*/
