@@ -2,7 +2,8 @@
 Description=Service to display system temperature on ssd1306 display device
 
 [Service]
-ExecStart=/home/orangepi/lkm/i2c_temp_display_ssd1306/user/tempDisplay.sh
+## Replace this path as per the location of 'tempDisplay.sh' on your system.
+ExecStart=/home/orangepi/github/ssd1306-on-linux/user/tempDisplay.sh    
 Restart=always
 User=root
 Group=root

@@ -69,10 +69,10 @@ This script reads the system temperature and displays it on the SSD1306 display 
 To set up the service, we have to:
 1. **Insert the driver module at system boot up.**
 
-    To insert our driver module at system boot we have to add the name of our driver to the file `/etc/modules`. Add the name of the driver (without the *.ko* extension) in a new line. NOTE:You may require sudo permissions to write to this file. Then, we have to copy our driver object file `ssd1306temp_dev.ko` to `/lib/modules/$(uname-r)/kernel/drivers/misc/ssd1306temp/ssd1306temp_dev.ko`. NOTE: Create a directory named `ssd1306temp` within the `misc` directory. With this arrangement, the module will be automatically loaded during system boot. To test, use `lsmod` after boot up.  
+    To insert our driver module at system boot we have to add the name of our driver to the file `/etc/modules`. Add the name of the driver (without the *.ko* extension) in a new line. NOTE:You may require sudo permissions to write to this file. Then, we have to copy our driver object file `ssd1306temp_dev.ko` to a suitable folder within `/lib/modules/$(uname-r)/kernel/drivers` directory. Let's copy it to `/lib/modules/5.10.43/kernel/drivers/misc/ssd1306temp/` (though you can choose to copy it anywhere within the *drivers* directory) . After copying the object file, run `depmod` within the `ssd1306temp` directory (Learn more about [depmod](https://wiki.debian.org/depmod)). With this arrangement, the module will be automatically loaded during system boot. To test, use `lsmod` after boot up.  
 2. **Add a [udev rule](https://opensource.com/article/18/11/udev) to make the device node `/dev/ssd1306temp` writable by user applications after the module is loaded.**
     
-    By default, the device file that is generated when we insert our module is read-only, so we need to write a udev rule that changes its permissions to allow user applications to write onto the device file.As such, we dont have to explicitly use chmod to set permisiions for the device node everytime we insert the module.
+    By default, the device file that is generated when we insert our module is read-only, so we need to write a udev rule that changes its permissions to allow user applications to write onto the device file.As such, we dont have to explicitly use chmod to set permissions for the device node everytime we insert the module.
 
     - Copy the file [user/99-perm.rules](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/99-perm.rules) to  `/etc/udev/rules.d/`. This file contains the udev rule to set permissions of our device node.
     - Run `sudo udevadm control –reload-rules`.
@@ -82,8 +82,9 @@ To set up the service, we have to:
 
 3. **Add a simple [systemd](https://www.freedesktop.org/wiki/Software/systemd/) service.**
 
-    The file [user/tempDisplay.service](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/tempDisplay.service) specifies a simple systemd service that runs the shell script [user/tempDisplay.sh]().
-    - Copy the file [user/tempDisplay.service](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/tempDisplay.service) to `/etc/systemd/system/` directory.
+    The file [user/tempDisplay.service](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/tempDisplay.service) specifies a simple systemd service that runs the shell script [user/tempDisplay.sh](https://github.com/bkhajuria/ssd1306-on-linux/blob/main/user/tempDisplay.sh).
+    - Open the file [user/tempDisplay.service](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/tempDisplay.service) and edit the *ExecStart* path to where the shell script [`tempDisplay.sh`](https://github.com/bkhajuria/ssd1306-on-linux/blob/main/user/tempDisplay.sh) is located on your system.
+    - Now copy the file [user/tempDisplay.service](https://github.com/bkhajuria/ssd1306-on-linux/tree/main/user/tempDisplay.service) to `/etc/systemd/system/` directory.
     - Run `sudo systemctl daemon-reload`.
     - Run `sudo systemctl enable tempDisplay.service`
     - Run `sudo systemctl start tempDisplay.service`
